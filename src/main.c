@@ -6,7 +6,7 @@ int main() {
   SYSCTL->RCGCGPIO |=(1<<5);
   GPIOF_AHB->DIR |= (1<<0);
   /*Super micros*/
-
+/*esto es una actualizacion*/
   while (1U){
 
   }
