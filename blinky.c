@@ -14,8 +14,9 @@ int main() {
 
     volatile uint32_t ui32Loop;
                         //operacione con bitwise
-
+                        // N      J       F     B
     SYSCTL->RCGCGPIO |= (1<<12)|(1<<8)|(1<<5)|(1<<1);
+    SYSCTL->RCGCGPIO |= 0x1122;
     while((SYSCTL->PRGPIO&0x00000100) == 0){;} // allow time for clock to stabilize
     ui32Loop = SYSCTL->RCGCGPIO;
     //Salidas
