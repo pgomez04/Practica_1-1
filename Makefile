@@ -1,74 +1,77 @@
-# Tiva Makefile
-# #####################################
+#******************************************************************************
 #
-# Part of the uCtools project
-# uctools.github.com
+# Makefile - Rules for building the blinky example.
 #
-#######################################
-# user configuration:
-#######################################
-# TARGET: name of the output file
-TARGET = main
-# MCU: part number to build for
-MCU = TM4C1294NCPDT
-# SOURCES: list of input source sources
-SOURCES = main.c startup_gcc.c  
-# INCLUDES: list of includes, by default, use Includes directory
-INCLUDES = -IInclude
-# OUTDIR: directory to use for output
-OUTDIR = build
-#T_PATH = C:\Users\JosédeJesúsSantanaRa\Documents\tiva-coco-master
-# LD_SCRIPT: linker script
-LD_SCRIPT = $(MCU).ld
-
-
-
-# define flags
-CFLAGS = -g -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
-CFLAGS +=-Os -ffunction-sections -fdata-sections -MD -std=c11 -Wall
-CFLAGS += -pedantic -DPART_$(MCU) -c -Ilib -ICMSIS/Include
-CFLAGS += -DTARGET_IS_TM4C129_RA0
-LDFLAGS = -T $(LD_SCRIPT)  
-
-#######################################
-# end of user configuration
-#######################################
+# Copyright (c) 2013-2014 Texas Instruments Incorporated.  All rights reserved.
+# Software License Agreement
+# 
+# Texas Instruments (TI) is supplying this software for use solely and
+# exclusively on TI's microcontroller products. The software is owned by
+# TI and/or its suppliers, and is protected under applicable copyright
+# laws. You may not combine this software with "viral" open-source
+# software in order to form a larger program.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITH ALL FAULTS.
+# NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT
+# NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. TI SHALL NOT, UNDER ANY
+# CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
+# DAMAGES, FOR ANY REASON WHATSOEVER.
+# 
+# This is part of revision 2.1.0.12573 of the EK-TM4C1294XL Firmware Package.
 #
-#######################################
-# binaries
-#######################################
-CC = arm-none-eabi-gcc
-LD = arm-none-eabi-ld
-OBJCOPY = arm-none-eabi-objcopy
-RM      = rm -f 
-MKDIR	= mkdir -p
-#######################################
+#******************************************************************************
 
-# list of object files, placed in the build directory regardless of source path
-OBJECTS = $(addprefix $(OUTDIR)/,$(notdir $(SOURCES:.c=.o)))
+#
+# Defines the part type that this project uses.
+#
+PART=TM4C1294NCPDT
 
-# default: build bin
-all: $(OUTDIR)/$(TARGET).bin
+#
+# The base directory for TivaWare.
+#
+ROOT=../../..
 
-$(OUTDIR)/%.o: src/%.c | $(OUTDIR)
-	$(CC) -o $@ $^ $(CFLAGS)
+#
+# Include the common make definitions.
+#
+include makedefs
 
-$(OUTDIR)/a.elf: $(OBJECTS)
-	$(LD) -o $@ $^ $(LDFLAGS)
+#
+# Where to find header files that do not live in the source directory.
+#
+IPATH=../../..
 
-$(OUTDIR)/$(TARGET).bin: $(OUTDIR)/a.elf
-	$(OBJCOPY) -O binary $< $@
+#
+# The default rule, which causes the blinky example to be built.
+#
+all: ${COMPILER}
+all: ${COMPILER}/blinky.axf
 
-# create the output directory
-$(OUTDIR):
-	$(MKDIR) $(OUTDIR)
-
-
-
+#
+# The rule to clean out all the build products.
+#
 clean:
-	-$(RM) $(OUTDIR)/*
+	@rm -rf ${COMPILER} ${wildcard *~}
 
-install: $(OUTDIR)/$(TARGET).bin
-	../lm4tools/lm4flash/lm4flash $(OUTDIR)/$(TARGET).bin
+#
+# The rule to create the target directory.
+#
+${COMPILER}:
+	@mkdir -p ${COMPILER}
 
-.PHONY: all clean
+#
+# Rules for building the blinky example.
+#
+${COMPILER}/blinky.axf: ${COMPILER}/blinky.o
+${COMPILER}/blinky.axf: ${COMPILER}/startup_${COMPILER}.o
+${COMPILER}/blinky.axf: blinky.ld
+SCATTERgcc_blinky=blinky.ld
+ENTRY_blinky=ResetISR
+
+#
+# Include the automatically generated dependency files.
+#
+ifneq (${MAKECMDGOALS},clean)
+-include ${wildcard ${COMPILER}/*.d} __dummy__
+endif
