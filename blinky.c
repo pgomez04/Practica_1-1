@@ -1,95 +1,117 @@
 
-#include "lib/include.h"
+//*****************************************************************************
+//
+// blinky.c - Simple example to blink the on-board LED.
+//
+// Copyright (c) 2013-2014 Texas Instruments Incorporated.  All rights reserved.
+// Software License Agreement
+// 
+// Texas Instruments (TI) is supplying this software for use solely and
+// exclusively on TI's microcontroller products. The software is owned by
+// TI and/or its suppliers, and is protected under applicable copyright
+// laws. You may not combine this software with "viral" open-source
+// software in order to form a larger program.
+// 
+// THIS SOFTWARE IS PROVIDED "AS IS" AND WITH ALL FAULTS.
+// NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT
+// NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. TI SHALL NOT, UNDER ANY
+// CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
+// DAMAGES, FOR ANY REASON WHATSOEVER.
+// 
+// This is part of revision 2.1.0.12573 of the EK-TM4C1294XL Firmware Package.
+//
+//*****************************************************************************
 
-unsigned long Led;
+#include <stdint.h>
+#include "../inc/tm4c1294ncpdt.h"
 
-void Delay(void){unsigned long volatile time;
-  time = 800000;
-  while(time){
-        time--;
-  }
-}
+//*****************************************************************************
+//
+//! \addtogroup example_list
+//! <h1>Blinky (blinky)</h1>
+//!
+//! A very simple example that blinks the on-board LED using direct register
+//! access.
+//
+//*****************************************************************************
 
-int main() {
+//*****************************************************************************
+//
+// Blink the on-board LED.
+//
+//*****************************************************************************
 
+int main(void)
+{
     volatile uint32_t ui32Loop;
-                        //operacione con bitwise
-                        // N      J       F     B
-    SYSCTL->RCGCGPIO |= (1<<12)|(1<<8)|(1<<5)|(1<<1);
-    SYSCTL->RCGCGPIO |= 0x1122;
-    while((SYSCTL->PRGPIO&0x00000100) == 0){;} // allow time for clock to stabilize
-    ui32Loop = SYSCTL->RCGCGPIO;
-    //Salidas
-    GPIOB_AHB->DIR |= (1<<4);
-    GPIOF_AHB->DIR |= (1<<4) | (1<<0);
-        GPION->DIR |= (1<<1) | (1<<0);
-    //Entradas
-    GPIOJ_AHB->DIR |= (0<<1)|(0<<0);
-    GPIOJ_AHB->PUR  |= (1<<1)|(1<<0);//Estado alto
-    //Funciones alternativas
-    GPIOB_AHB->AFSEL |= 0x00;
-    GPIOJ_AHB->AFSEL |= 0x00;
-        GPION->AFSEL |= 0x00;
-    GPIOF_AHB->AFSEL |= 0x00;
-    //Tabla con GPIOCTL
-    GPIOB_AHB->PCTL |= 0x00;
-    GPIOJ_AHB->PCTL |= 0x00;
-        GPION->PCTL |= 0x00;
-    GPIOF_AHB->PCTL |= 0x00;
-    //Habilitarlos como digitales
-    GPIOB_AHB->DEN |= (1<<4);
-    GPIOJ_AHB->DEN |= (1<<1) | (1<<0);
-        GPION->DEN |= (1<<1) | (1<<0);
-    GPIOF_AHB->DEN |= (1<<4) | (1<<0);
-    //GPION->DIR  = 0x03; 
-    //GPION->DEN  = 0x03;
 
-  /*Super micros*/
-/*esto es una actualizacion*/
+    //
+    // Enable the GPIO port that is used for the on-board LED.
+    //
+    //SYSCTL_RCGCGPIO_R = SYSCTL_RCGCGPIO_R12 | SYSCTL_RCGCGPIO_R5;
+    SYSCTL_RCGCGPIO_R = SYSCTL_RCGCGPIO_R1; //puerto b 
 
-  while (1U)
-  {
+    //
+    // Do a dummy read to insert a few cycles after enabling the peripheral.
+    //
+    ui32Loop = SYSCTL_RCGCGPIO_R;
+
+    //
+    // Enable the GPIO pin for the LED (PN0).  Set the direction as output, and
+    // enable the GPIO pin for digital function.
+    //
+
+
+    GPIO_PORTB_AHB_DIR_R = (0x10); //pb4, bit 4 en hexadecimal 
+    GPIO_PORTB_AHB_DEN_R = (0x10);
+
+
+    /*
+    GPIO_PORTN_DIR_R = (0x01) | (0x00);
+    GPIO_PORTN_DEN_R = (0x01) | (0x00);
+    GPIO_PORTF_AHB_DIR_R = (0x01);
+    GPIO_PORTF_AHB_DEN_R = (0x01);
+    */
+    //
+    // Loop forever.
+    //
+    while(1)
+    {
         //
         // Turn on the LED.
         //
-         GPION->DATA |= 0x01;
-        //GPIO_PORTN_DATA_R |= 0x01;
+        GPIO_PORTB_AHB_DATA_R |= (0x10);
+        /*
+        GPIO_PORTN_DATAR |= 0x01;
+        GPIO_PORTN_DATA_R |= 0x00;
+        GPIO_PORTF_AHB_DATA_R |= 0x01;
+        */
 
         //
         // Delay for a bit.
         //
-        for(ui32Loop = 0; ui32Loop < 2000000; ui32Loop++)
+        for(ui32Loop = 0; ui32Loop < 746269; ui32Loop++)
         {
         }
-         GPION->DATA |= 0x02;
-        //GPIO_PORTN_DATA_R |= 0x01;
 
-        //
-        // Delay for a bit.
-        //
-        for(ui32Loop = 0; ui32Loop < 2000000; ui32Loop++)
-        {
-        }
         //
         // Turn off the LED.
         //
-        GPION->DATA &= ~(0x01);
-        //GPIO_PORTN_DATA_R &= ~(0x01);
+      
+        GPIO_PORTB_AHB_DATA_R &= ~(0x10);
+        /*
+        GPIO_PORTN_DATA_R &= ~(0x00);
+        GPIO_PORTF_AHB_DATA_R &= ~(0x00);
+        GPIO_PORTN_DATA_R &= ~(0x01);
+        */
 
         //
         // Delay for a bit.
         //
-        for(ui32Loop = 0; ui32Loop < 200000; ui32Loop++)
+        for(ui32Loop = 0; ui32Loop < 746271; ui32Loop++)
         {
         }
-                GPION->DATA &= ~(0x02);
-        //GPIO_PORTN_DATA_R &= ~(0x01);
-
-        //
-        // Delay for a bit.
-        //
-        for(ui32Loop = 0; ui32Loop < 200000; ui32Loop++)
-        {
-        }
-  }
+    }
 }
+//Holis bolis
